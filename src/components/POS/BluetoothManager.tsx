@@ -7,12 +7,7 @@ import {
   BluetoothConnected, 
   X, 
   Smartphone,
-  Wifi,
-  WifiOff,
-  CheckCircle,
-  RotateCcw,
-  RefreshCw,
-  AlertTriangle
+  CheckCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { hybridThermalPrinter } from '@/lib/hybrid-thermal-printer';
@@ -26,7 +21,6 @@ interface ConnectedDevice {
 
 export const BluetoothManager = () => {
   const [isConnecting, setIsConnecting] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
   const [connectedDevices, setConnectedDevices] = useState<ConnectedDevice[]>([]);
   const [isConnected, setIsConnected] = useState(false);
 
@@ -88,32 +82,6 @@ export const BluetoothManager = () => {
     }
   };
 
-  const handleReset = async () => {
-    setIsResetting(true);
-    
-    try {
-      // First disconnect any existing connections
-      await hybridThermalPrinter.disconnect();
-      
-      // Clear connection history
-      hybridThermalPrinter.clearConnectionHistory();
-      
-      // Reset local state
-      setConnectedDevices([]);
-      setIsConnected(false);
-      
-      // Small delay to let hardware reset
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast.success('Sistem Bluetooth berhasil direset. Silakan hubungkan ulang printer thermal.');
-      
-    } catch (error: any) {
-      console.error('Reset error:', error);
-      toast.error('Gagal mereset sistem Bluetooth');
-    } finally {
-      setIsResetting(false);
-    }
-  };
 
   const handleDisconnect = async (deviceId?: string) => {
     try {
@@ -153,14 +121,14 @@ export const BluetoothManager = () => {
         )}
       </Badge>
 
-      {/* Connect/Disconnect/Reset Buttons */}
+      {/* Connect/Disconnect Buttons */}
       {!isConnected ? (
         <div className="flex items-center gap-1">
           <Button
             size="sm"
             variant="outline"
             onClick={handleConnect}
-            disabled={isConnecting || isResetting}
+            disabled={isConnecting}
             className="flex items-center gap-1"
           >
             {isConnecting ? (
@@ -175,28 +143,6 @@ export const BluetoothManager = () => {
               </>
             )}
           </Button>
-          
-          {/* Reset Button */}
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleReset}
-            disabled={isConnecting || isResetting}
-            className="flex items-center gap-1 text-orange-600 hover:text-orange-700"
-            title="Reset sistem Bluetooth printer thermal"
-          >
-            {isResetting ? (
-              <>
-                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-orange-600"></div>
-                <span className="text-xs hidden sm:inline">Mereset...</span>
-              </>
-            ) : (
-              <>
-                <RotateCcw className="h-3 w-3" />
-                <span className="text-xs hidden sm:inline">Reset</span>
-              </>
-            )}
-          </Button>
         </div>
       ) : (
         <div className="flex items-center gap-1">
@@ -208,22 +154,6 @@ export const BluetoothManager = () => {
           >
             <X className="h-3 w-3" />
             <span className="text-xs hidden sm:inline">Putus</span>
-          </Button>
-          
-          {/* Reset Button (available even when connected) */}
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleReset}
-            disabled={isResetting}
-            className="flex items-center gap-1 text-orange-600 hover:text-orange-700"
-            title="Reset dan putuskan koneksi"
-          >
-            {isResetting ? (
-              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-orange-600"></div>
-            ) : (
-              <RotateCcw className="h-3 w-3" />
-            )}
           </Button>
         </div>
       )}

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Smartphone, Chrome, Bluetooth, Settings, Wifi, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Smartphone, Chrome, Bluetooth, Settings, Wifi, AlertTriangle } from 'lucide-react';
 
 export const BluetoothInstructions = () => {
   const isAndroid = /Android/.test(navigator.userAgent);
@@ -79,12 +79,6 @@ export const BluetoothInstructions = () => {
           </AlertDescription>
         </Alert>
 
-        <Alert>
-          <RotateCcw className="h-4 w-4" />
-          <AlertDescription>
-            <strong>Troubleshooting:</strong> Jika koneksi bermasalah, gunakan tombol <strong>"Reset"</strong> untuk mereset sistem Bluetooth
-          </AlertDescription>
-        </Alert>
 
         <Alert>
           <AlertTriangle className="h-4 w-4" />

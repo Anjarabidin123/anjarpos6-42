@@ -1,14 +1,27 @@
 import { Capacitor } from '@capacitor/core';
 import { BleClient, BleDevice, numbersToDataView, textToDataView } from '@capacitor-community/bluetooth-le';
 
+// Robust native Bluetooth LE thermal printer implementation
 export class NativeThermalPrinter {
   private device: BleDevice | null = null;
-  private serviceUuid: string = '';
-  private characteristicUuid: string = '';
+  private serviceUuid = '';
+  private characteristicUuid = '';
+  private initialized = false;
+
+  private PRINTER_SERVICES = [
+    // Common BLE UART / printer services
+    '000018f0-0000-1000-8000-00805f9b34fb', // Many thermal printers
+    '49535343-fe7d-4ae5-8fa9-9fafd205e455', // HM-10 / BT05
+    '0000ff00-0000-1000-8000-00805f9b34fb', // Custom FF00
+    '6e400001-b5a3-f393-e0a9-e50e24dcca9e', // Nordic UART
+    '0000180f-0000-1000-8000-00805f9b34fb', // Battery (optional)
+  ];
 
   async initialize(): Promise<void> {
+    if (this.initialized) return;
     if (Capacitor.isNativePlatform()) {
       await BleClient.initialize();
+      this.initialized = true;
       console.log('Native BLE initialized');
     }
   }
@@ -19,54 +32,38 @@ export class NativeThermalPrinter {
     }
 
     try {
-      console.log('🔍 Scanning for Bluetooth printers...');
-      
       await this.initialize();
 
-      // Request permission and scan for devices
-      const devices = await BleClient.requestLEScan({
-        services: [
-          '000018f0-0000-1000-8000-00805f9b34fb', // Thermal printer service
-          '49535343-fe7d-4ae5-8fa9-9fafd205e455', // HM-10 module
-          '0000ff00-0000-1000-8000-00805f9b34fb', // Custom service UUID
-          '6e400001-b5a3-f393-e0a9-e50e24dcca9e'  // Nordic UART Service
-        ]
-      }, (result) => {
-        console.log('Found device:', result.device.name || result.device.deviceId);
-      });
-
-      // Stop scanning after 10 seconds
-      setTimeout(async () => {
-        await BleClient.stopLEScan();
-      }, 10000);
-
-      // For now, let's use a manual device selection approach
-      const deviceList = await BleClient.getDevices([]);
-      
-      if (deviceList.length === 0) {
-        throw new Error('Tidak ditemukan printer thermal Bluetooth');
+      // Already connected
+      if (this.device && this.serviceUuid && this.characteristicUuid) {
+        return true;
       }
 
-      // Use the first available device (in a real app, you'd show a selection UI)
-      this.device = deviceList[0];
-      
+      // Let user pick the device (more reliable than raw scanning on mobile)
+      const req: any = {
+        acceptAllDevices: true,
+        optionalServices: this.PRINTER_SERVICES,
+      };
+
+      const picked = (await BleClient.requestDevice(req)) as unknown as BleDevice;
+      if (!picked) {
+        console.log('User cancelled device selection');
+        return false;
+      }
+
+      this.device = picked;
       console.log(`Connecting to: ${this.device.name || this.device.deviceId}`);
-      
-      // Connect to the device
+
       await BleClient.connect(this.device.deviceId);
-      
-      // Discover services
+
       const services = await BleClient.getServices(this.device.deviceId);
       console.log(`Found ${services.length} services`);
 
       // Find writable characteristic
       for (const service of services) {
-        console.log(`Checking service: ${service.uuid}`);
-        
         for (const characteristic of service.characteristics) {
-          console.log(`Characteristic: ${characteristic.uuid}, Properties:`, characteristic.properties);
-          
-          if (characteristic.properties.write || characteristic.properties.writeWithoutResponse) {
+          const props: any = characteristic.properties;
+          if (props?.write || props?.writeWithoutResponse) {
             this.serviceUuid = service.uuid;
             this.characteristicUuid = characteristic.uuid;
             console.log(`✓ Using service: ${this.serviceUuid}, characteristic: ${this.characteristicUuid}`);
@@ -76,45 +73,45 @@ export class NativeThermalPrinter {
       }
 
       throw new Error('Tidak ditemukan characteristic yang bisa ditulis');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to connect to native printer:', error);
       return false;
     }
   }
 
   async print(text: string): Promise<boolean> {
+    if (!Capacitor.isNativePlatform()) return false;
+
     if (!this.device || !this.serviceUuid || !this.characteristicUuid) {
-      const connected = await this.connect();
-      if (!connected) return false;
+      const ok = await this.connect();
+      if (!ok) return false;
     }
 
     try {
-      // ESC/POS commands for thermal printing
       const ESC = '\x1B';
       const GS = '\x1D';
-      
-      // Initialize printer
+
       let commands = ESC + '@'; // Initialize
       commands += ESC + 'a' + '\x01'; // Center align
-      
-      // Add the text content
       commands += text;
-      
-      // Cut paper and eject
       commands += '\n\n\n';
       commands += GS + 'V' + '\x42' + '\x00'; // Partial cut
-      
-      // Convert text to DataView for native BLE
-      const dataView = textToDataView(commands);
-      
-      // Write to characteristic
-      await BleClient.write(
-        this.device!.deviceId,
-        this.serviceUuid,
-        this.characteristicUuid,
-        dataView
-      );
-      
+
+      // Convert to bytes and chunk for BLE write (MTU ~ 180 bytes is safe)
+      const encoder = new TextEncoder();
+      const data = encoder.encode(commands);
+      const chunkSize = 180;
+
+      for (let i = 0; i < data.length; i += chunkSize) {
+        const chunk = data.slice(i, i + chunkSize);
+        const view = numbersToDataView(Array.from(chunk));
+        await BleClient.write(this.device!.deviceId, this.serviceUuid, this.characteristicUuid, view);
+        // Small delay to avoid buffer overflow on some printers
+        if (i + chunkSize < data.length) {
+          await new Promise((r) => setTimeout(r, 50));
+        }
+      }
+
       console.log('✓ Native print command sent successfully');
       return true;
     } catch (error) {
@@ -125,7 +122,11 @@ export class NativeThermalPrinter {
 
   async disconnect(): Promise<void> {
     if (this.device) {
-      await BleClient.disconnect(this.device.deviceId);
+      try {
+        await BleClient.disconnect(this.device.deviceId);
+      } catch (e) {
+        console.warn('Disconnect warning:', e);
+      }
       console.log('Disconnected from native printer');
     }
     this.device = null;
@@ -134,7 +135,7 @@ export class NativeThermalPrinter {
   }
 
   isConnected(): boolean {
-    return this.device !== null;
+    return !!this.device && !!this.serviceUuid && !!this.characteristicUuid;
   }
 }
 
