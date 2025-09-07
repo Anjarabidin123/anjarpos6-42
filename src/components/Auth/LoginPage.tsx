@@ -255,53 +255,45 @@ export const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Store className="h-6 w-6 text-primary" />
-            <CardTitle className="text-2xl font-bold">Kasir Toko Anjar</CardTitle>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-4">
+      <Card className="w-full max-w-md shadow-xl border-0 bg-card/95 backdrop-blur-sm">
+        <CardHeader className="text-center pb-6">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="p-3 rounded-full bg-primary/10">
+              <Store className="h-8 w-8 text-primary" />
+            </div>
+            <div className="text-left">
+              <CardTitle className="text-xl font-bold text-foreground">Kasir Toko Anjar</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
+                Sistem Point of Sale
+              </CardDescription>
+            </div>
           </div>
-          <CardDescription>
-            Masuk ke sistem kasir
-          </CardDescription>
           
-          {/* Current Time Display */}
-          <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-3 mt-4 space-y-2 border border-primary/20">
-            <div className="flex items-center justify-center gap-2 text-primary">
-              <Clock className="h-4 w-4" />
-              <span className="font-mono text-lg font-semibold tracking-wide bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
+          {/* Compact Time & Status Bar */}
+          <div className="flex items-center justify-between px-4 py-2 bg-muted/30 rounded-lg border">
+            <div className="flex items-center gap-2">
+              <Clock className="h-3 w-3 text-primary" />
+              <span className="font-mono text-sm font-medium">
                 {formatTime(currentTime)}
               </span>
             </div>
-            <div className="text-xs text-muted-foreground font-medium text-center">
-              {formatDate(currentTime)}
-            </div>
+            <Badge 
+              variant={isOperatingHours() ? "default" : "secondary"}
+              className={`text-xs ${isOperatingHours() ? "bg-success" : ""}`}
+            >
+              {isOperatingHours() ? "Buka" : "Tutup"}
+            </Badge>
           </div>
-
-          {/* Operating Hours Info */}
-          <div className="mt-4 p-3 bg-primary/5 rounded-lg border">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Store className="h-4 w-4 text-primary" />
-              <span className="font-medium text-sm">Jam Operasional</span>
-            </div>
-            <div className="text-sm text-center">
-              <span className="font-mono">07:00 - 17:00 WIB</span>
-            </div>
-            <div className="mt-2 flex justify-center">
-              <Badge 
-                variant={isOperatingHours() ? "default" : "secondary"}
-                className={isOperatingHours() ? "bg-green-600 hover:bg-green-700" : ""}
-              >
-                {isOperatingHours() ? "🟢 Buka" : "🔴 Tutup"}
-              </Badge>
-            </div>
+          
+          <div className="text-xs text-muted-foreground mt-2">
+            {formatDate(currentTime)} • Jam Operasional: 07:00 - 17:00
           </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignIn} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Email atau Username</Label>
+              <Label htmlFor="username" className="text-sm font-medium">Email atau Username</Label>
               <Input
                 id="username"
                 type="text"
@@ -310,42 +302,48 @@ export const LoginPage = () => {
                   ...formData, 
                   email: e.target.value 
                 })}
-                placeholder="email@contoh.com atau username"
+                placeholder="Masukkan email atau username"
+                className="h-11"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
               <Input
                 id="password"
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder="••••••••"
+                placeholder="Masukkan password"
+                className="h-11"
                 required
               />
             </div>
 
             {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
+              <Alert variant="destructive" className="py-2">
+                <AlertDescription className="text-sm">{error}</AlertDescription>
               </Alert>
             )}
 
-            <div className="space-y-2">
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Loading...' : 'Masuk'}
+            <div className="space-y-3 pt-2">
+              <Button 
+                type="submit" 
+                className="w-full h-11 bg-gradient-to-r from-primary to-primary-light hover:from-primary/90 hover:to-primary-light/90" 
+                disabled={isLoading}
+              >
+                {isLoading ? 'Memproses...' : 'Masuk ke Sistem'}
               </Button>
+              
               <Button 
                 type="button" 
                 variant="ghost" 
-                className="w-full text-sm" 
+                className="w-full text-sm text-muted-foreground hover:text-primary" 
                 onClick={() => setShowForgotPassword(true)}
               >
                 Lupa Password?
               </Button>
-              {/* Sign up button removed for security */}
             </div>
           </form>
         </CardContent>
