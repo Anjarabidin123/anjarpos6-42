@@ -428,15 +428,15 @@ Profit: ${formatPrice(receipt.profit)}
             setCurrentTab(value);
           }
         }} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8 gap-1 h-auto p-1">
-            <TabsTrigger value="pos" className="text-xs sm:text-sm p-2 sm:p-3">Kasir</TabsTrigger>
-            <TabsTrigger value="manual-invoice" className="text-xs sm:text-sm p-2 sm:p-3">Nota Manual</TabsTrigger>
-            <TabsTrigger value="shopping-list" className="text-xs sm:text-sm p-2 sm:p-3">Daftar Belanja</TabsTrigger>
-            <TabsTrigger value="stock" className="text-xs sm:text-sm p-2 sm:p-3">Stok</TabsTrigger>
-            <TabsTrigger value="receipt" className="text-xs sm:text-sm p-2 sm:p-3">Nota</TabsTrigger>
-            <TabsTrigger value="reports" className="text-xs sm:text-sm p-2 sm:p-3">Laporan</TabsTrigger>
-            <TabsTrigger value="manual-reports" className="text-xs sm:text-sm p-2 sm:p-3">Laporan Manual</TabsTrigger>
-            <TabsTrigger value="admin" className="text-xs sm:text-sm p-2 sm:p-3">Admin</TabsTrigger>
+          <TabsList className="flex w-full h-auto p-1 overflow-x-auto gap-1 justify-start sm:grid sm:grid-cols-8 sm:gap-1">
+            <TabsTrigger value="pos" className="flex-shrink-0 text-xs sm:text-sm px-2 py-2 sm:px-3 sm:py-3">Kasir</TabsTrigger>
+            <TabsTrigger value="manual-invoice" className="flex-shrink-0 text-xs sm:text-sm px-2 py-2 sm:px-3 sm:py-3 whitespace-nowrap">Nota Manual</TabsTrigger>
+            <TabsTrigger value="shopping-list" className="flex-shrink-0 text-xs sm:text-sm px-2 py-2 sm:px-3 sm:py-3 whitespace-nowrap">Daftar Belanja</TabsTrigger>
+            <TabsTrigger value="stock" className="flex-shrink-0 text-xs sm:text-sm px-2 py-2 sm:px-3 sm:py-3">Stok</TabsTrigger>
+            <TabsTrigger value="receipt" className="flex-shrink-0 text-xs sm:text-sm px-2 py-2 sm:px-3 sm:py-3">Nota</TabsTrigger>
+            <TabsTrigger value="reports" className="flex-shrink-0 text-xs sm:text-sm px-2 py-2 sm:px-3 sm:py-3">Laporan</TabsTrigger>
+            <TabsTrigger value="manual-reports" className="flex-shrink-0 text-xs sm:text-sm px-2 py-2 sm:px-3 sm:py-3 whitespace-nowrap">Laporan Manual</TabsTrigger>
+            <TabsTrigger value="admin" className="flex-shrink-0 text-xs sm:text-sm px-2 py-2 sm:px-3 sm:py-3">Admin</TabsTrigger>
           </TabsList>
 
           <TabsContent value="pos" className="space-y-2 sm:space-y-4 mt-2 sm:mt-4">

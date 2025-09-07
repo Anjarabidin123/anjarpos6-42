@@ -267,14 +267,14 @@ export const LoginPage = () => {
           </CardDescription>
           
           {/* Current Time Display */}
-          <div className="bg-muted/50 rounded-lg p-3 mt-4 space-y-2">
-            <div className="flex items-center justify-center gap-2 text-primary">
-              <Clock className="h-4 w-4" />
-              <span className="font-mono text-lg font-semibold">
+          <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-4 mt-4 space-y-3 border border-primary/20">
+            <div className="flex items-center justify-center gap-3 text-primary">
+              <Clock className="h-5 w-5" />
+              <span className="font-mono text-2xl font-bold tracking-wider bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
                 {formatTime(currentTime)}
               </span>
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-sm text-muted-foreground font-medium text-center">
               {formatDate(currentTime)}
             </div>
           </div>
